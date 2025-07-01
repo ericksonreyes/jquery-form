@@ -1,0 +1,95 @@
+services:
+
+  gulp-watch:
+    platform: linux/amd64
+    build:
+      context: .
+      dockerfile: docker/gulp-watch.Dockerfile
+    volumes:
+    - 'npm_cache:/root/.npm'
+    - './:/var/www/html'
+    restart: unless-stopped
+    container_name: "${DOCKER_CONTAINER_PREFIX:-jquery-form}-gulp-watch"
+
+  gulp:
+    tty: true
+    init: true
+    platform: linux/amd64
+    build:
+      context: .
+      dockerfile: docker/gulp.Dockerfile
+    volumes:
+    - 'npm_cache:/root/.npm'
+    - './:/var/www/html'
+    container_name: "${DOCKER_CONTAINER_PREFIX:-jquery-form}-gulp"
+
+  npm:
+    init: true
+    platform: linux/amd64
+    build:
+      context: .
+      dockerfile: docker/npm.Dockerfile
+    volumes:
+    - './:/var/www/html:delegated'
+    - 'npm_cache:/root/.npm'
+    tty: true
+    network_mode: host
+    container_name: "${DOCKER_CONTAINER_PREFIX:-jquery-form}-npm"
+
+
+  npx:
+    init: true
+    platform: linux/amd64
+    build:
+      context: .
+      dockerfile: docker/npx.Dockerfile
+    volumes:
+    - './:/var/www/html:delegated'
+    working_dir: '/var/www/html'
+    tty: true
+    network_mode: host
+    container_name: "${DOCKER_CONTAINER_PREFIX:-jquery-form}-npx"
+
+
+  php:
+    init: true
+    platform: linux/amd64
+    build:
+      context: .
+      dockerfile: docker/php.Dockerfile
+    volumes:
+    - './storage/php/php_error.log:/var/log/php_error.log:delegated'
+    - './:/var/www/html:delegated'
+    tty: true
+    networks:
+    - backend-network
+    container_name: "${DOCKER_CONTAINER_PREFIX:-jquery-form}-php"
+    
+
+  app:
+    build:
+      context: .
+      dockerfile: docker/apache.Dockerfile
+    ports:
+    - "${DOCKER_APPLICATION_PUBLIC_PORT:-8888}:80"
+    volumes:
+    - './:/var/www/html:delegated'
+    - 'storage:/var/www/storage'
+    restart: unless-stopped
+    depends_on:
+    - gulp-watch
+    networks:
+    - backend-network
+    container_name: "${DOCKER_CONTAINER_PREFIX:-jquery-form}-apache"
+    
+
+networks:
+  backend-network:
+    name: "${DOCKER_NETWORK_NAME:-jquery-form}-backend-network"
+    driver: bridge
+    enable_ipv6: false
+
+
+volumes:
+  npm_cache:
+  storage:
