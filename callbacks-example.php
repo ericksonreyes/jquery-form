@@ -12,7 +12,7 @@
 
 <div class="row mt-3">
     <div class="col-12">
-        <h1>Normal Form</h1>
+        <h1>Form with callbacks</h1>
         <form action="/api/index.php?result=html" method="post" id="form">
 
             <div class="jqf-form-container">
@@ -81,14 +81,39 @@
     </div>
 </div>
 
+<div class="row mt-3">
+    <div class="col-12">
+        <h3>Callback log</h3>
+        <ol id="callback_log"></ol>
+    </div>
+</div>
+
 <script>
     $(document).ready(function () {
         $('.url').on('change', function () {
             $('#form').attr('action', $(this).val());
         });
     });
+    const callback_log = $('#callback_log');
 
-    $('#form').jqueryForm();
+    $('#form').jqueryForm({
+        beforeSend: function () {
+            const now = new Date();
+            callback_log.append('<li>' + now.toLocaleString() + ' - beforeSend callback was called.</li>');
+        },
+        onSuccess: function () {
+            const now = new Date();
+            callback_log.append('<li>' + now.toLocaleString() + ' - onSuccess callback was called.</li>');
+        },
+        onError: function () {
+            const now = new Date();
+            callback_log.append('<li>' + now.toLocaleString() + ' - onError callback was called.</li>');
+        },
+        onComplete: function () {
+            const now = new Date();
+            callback_log.append('<li>' + now.toLocaleString() + ' - onComplete callback was called.</li>');
+        }
+    });
 </script>
 </body>
 </html>
