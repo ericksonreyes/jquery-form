@@ -13,8 +13,26 @@ switch ($_GET['result']) {
                 'response' => [
                     'title' => 'Login Success',
                     'message' => 'Redirecting to Dashboard',
+                    'redirect' => '/dashboard'
+                ]
+            ]
+        ];
+        break;
+    case 'load':
+        $responseArray = [
+            'data' => [
+                'type' => 'users',
+                'id' => '1',
+                'attributes' => [
+                    'name' => 'John Doe',
+                    'email' => 'iY5m1@example.com',
+                    'message' => 'Hello World',
+                    'created_at' => date('c', strtotime('-2 months')),
+                    'updated_at' => date('c'),
                 ],
-                'redirect' => '/dashboard'
+                'links' => [
+                    'self' => '/api/users/1'
+                ]
             ]
         ];
         break;
@@ -25,9 +43,11 @@ switch ($_GET['result']) {
                 'type' => 'users',
                 'id' => '1',
                 'attributes' => [
-                    'name' => 'John Doe',
-                    'email' => 'john@example.com',
-                    'created_at' => date('c')
+                    'name' => $_POST['name'],
+                    'email' => $_POST['email'],
+                    'message' => $_POST['message'],
+                    'created_at' => date('c'),
+                    'updated_at' => null,
                 ],
                 'links' => [
                     'self' => '/api/users/1'
@@ -48,9 +68,11 @@ switch ($_GET['result']) {
                 'type' => 'users',
                 'id' => '1',
                 'attributes' => [
-                    'name' => 'John Doe',
-                    'email' => 'john@example.com',
-                    'created_at' => date('c')
+                    'name' => $_POST['name'],
+                    'email' => $_POST['email'],
+                    'message' => $_POST['message'],
+                    'created_at' => date('c', strtotime('-2 months')),
+                    'updated_at' => date('c'),
                 ],
                 'links' => [
                     'self' => '/api/users/1'
@@ -68,6 +90,15 @@ switch ($_GET['result']) {
         $httpStatus = 422;
         $responseArray = [
             'errors' => [
+                [
+                    'status' => '422',
+                    'code' => 'InvalidArgumentException',
+                    'title' => 'Validation Error',
+                    'detail' => 'Name is required',
+                    'source' => [
+                        'pointer' => '/data/attributes/name'
+                    ]
+                ],
                 [
                     'status' => '422',
                     'code' => 'InvalidArgumentException',
@@ -90,7 +121,21 @@ switch ($_GET['result']) {
             'meta' => [
                 'response' => [
                     'title' => 'Validation Failed',
-                    'message' => 'Please correct the errors and try again'
+                    'message' => 'Please correct the errors and try again',
+                    'errors' => [
+                        [
+                            'field' => 'name',
+                            'message' => 'Name is required'
+                        ],
+                        [
+                            'field' => 'email',
+                            'message' => 'The email address is already in use'
+                        ],
+                        [
+                            'field' => 'password',
+                            'message' => 'The password must be at least 8 characters'
+                        ]
+                    ]
                 ]
             ]
         ];
@@ -106,15 +151,61 @@ switch ($_GET['result']) {
                     'detail' => 'An unexpected error occurred while processing your request',
                     'links' => [
                         'about' => 'https://example.com/docs/errors/500'
-                    ],
-                    'meta' => [
-                        'exception' => [
-                            'type' => 'RuntimeException',
-                            'message' => 'Unexpected database connection failure',
-                            'file' => 'Database.php',
-                            'line' => 103
-                        ],
                     ]
+                ]
+            ],
+            'meta' => [
+                'response' => [
+                    'title' => 'Server Error',
+                    'message' => 'We apologize for the inconvenience. Our team has been notified and is working to resolve this issue.'
+                ]
+            ]
+        ];
+        break;
+    case 'error_detailed':
+        $httpStatus = 500;
+        $responseArray = [
+            'errors' => [
+                [
+                    'status' => '500',
+                    'code' => 'RuntimeException',
+                    'title' => 'Internal Server Error',
+                    'detail' => 'An unexpected error occurred while processing your request',
+                    'links' => [
+                        'about' => 'https://example.com/docs/errors/500'
+                    ]
+                ]
+            ],
+            'meta' => [
+                'response' => [
+                    'title' => 'Server Error',
+                    'message' => 'We apologize for the inconvenience. Our team has been notified and is working to resolve this issue.',
+                    'type' => 'RuntimeException',
+                    'file' => 'Database.php',
+                    'line' => 103,
+                    'stack_trace' => [
+                        [
+                            'file' => '/var/www/html/app/Database.php',
+                            'line' => 103,
+                            'function' => 'connect',
+                            'class' => 'Database',
+                            'type' => '->'
+                        ],
+                        [
+                            'file' => '/var/www/html/app/Models/User.php',
+                            'line' => 45,
+                            'function' => 'query',
+                            'class' => 'Database',
+                            'type' => '->'
+                        ],
+                        [
+                            'file' => '/var/www/html/api/index.php',
+                            'line' => 28,
+                            'function' => 'save',
+                            'class' => 'Models\User',
+                            'type' => '->'
+                        ]
+                    ],
                 ]
             ]
         ];
